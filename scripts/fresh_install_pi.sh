@@ -96,7 +96,7 @@ fi
 # Install dependencies #
 ########################
 info "Installing dependencies"
-xargs -a .packages sudo apt-get install -y -q
+xargs -a "${HOME}.packages" sudo apt-get install -y -q
 
 ##################
 # Setup dotfiles #
