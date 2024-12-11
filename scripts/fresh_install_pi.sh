@@ -39,7 +39,7 @@ fi
 # Update bootloader version #
 #############################
 info "Updating bootloader version"
-if sudo rpi-eeprom-update; then
+if sudo rpi-eeprom-update | grep -q "BOOTLOADER: update available"; then
   info "Bootloader update available. Updating now..."
   sudo rpi-eeprom-update -a
   success "Bootloader updated successfully."
@@ -97,7 +97,7 @@ if ! command_exists tailscale; then
   echo 'net.ipv4.ip_forward = 1' | sudo tee -a /etc/sysctl.d/99-tailscale.conf
   echo 'net.ipv6.conf.all.forwarding = 1' | sudo tee -a /etc/sysctl.d/99-tailscale.conf
   sudo sysctl -p /etc/sysctl.d/99-tailscale.conf
-  tailscale up --ssh --advertise-exit-node --operator $USER
+  sudo tailscale up --ssh --advertise-exit-node --operator $USER
 else
   info "Tailscale is already installed"
 fi
