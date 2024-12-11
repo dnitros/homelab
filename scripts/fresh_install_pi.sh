@@ -71,6 +71,25 @@ else
   info "Bluetooth is already disabled"
 fi
 
+###################
+# Setup tailscale #
+###################
+info "Installing tailscale"
+if ! command_exists tailscale; then
+  curl -fsSL https://pkgs.tailscale.com/stable/debian/$(. /etc/os-release && echo "$VERSION_CODENAME").noarmor.gpg | sudo tee /usr/share/keyrings/tailscale-archive-keyring.gpg >/dev/null
+  curl -fsSL https://pkgs.tailscale.com/stable/debian/$(. /etc/os-release && echo "$VERSION_CODENAME").tailscale-keyring.list | sudo tee /etc/apt/sources.list.d/tailscale.list
+  sudo apt-get update -y -q
+  sudo apt-get install tailscale -y -q
+  success "Tailscale installed successfully"
+  info "Setting up tailscale"
+  echo 'net.ipv4.ip_forward = 1' | sudo tee -a /etc/sysctl.d/99-tailscale.conf
+  echo 'net.ipv6.conf.all.forwarding = 1' | sudo tee -a /etc/sysctl.d/99-tailscale.conf
+  sudo sysctl -p /etc/sysctl.d/99-tailscale.conf
+  tailscale up --ssh --advertise-exit-node --operator $USER
+else
+  info "Tailscale is already installed"
+fi
+
 ###########################
 # Update the apt packages #
 ###########################
@@ -96,7 +115,7 @@ fi
 # Install dependencies #
 ########################
 info "Installing dependencies"
-xargs -a "${HOME}.packages" sudo apt-get install -y -q
+xargs -a "${HOME}/.packages" sudo apt-get install -y -q
 
 ##################
 # Setup dotfiles #
