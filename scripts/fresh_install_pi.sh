@@ -72,6 +72,18 @@ else
 fi
 
 ###################
+# Setup git-delta #
+###################
+info "Installing git-delta"
+if ! command_exists delta; then
+  curl -fsSL https://github.com/dandavison/delta/releases/download/0.18.2/git-delta_0.18.2_arm64.deb -o /tmp/git-delta.deb
+  sudo dpkg -i /tmp/git-delta.deb
+  success "git-delta installed successfully"
+else
+  info "git-delta is already installed"
+fi
+
+###################
 # Setup tailscale #
 ###################
 info "Installing tailscale"
