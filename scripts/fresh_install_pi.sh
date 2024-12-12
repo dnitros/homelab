@@ -25,6 +25,17 @@ fi
 success "Utility functions initialized"
 
 ##############################
+# Download the packages file #
+##############################
+info "Downloading the packages file"
+if ! is_file "${HOME}/.packages"; then
+  curl -fsSL "https://raw.githubusercontent.com/dnitros/dotfiles/refs/heads/main/files/.packages" -o "${HOME}/.packages"
+  success "Packages file downloaded successfully"
+else
+  info "Packages file already present"
+fi
+
+##############################
 # Update SSH configuration   #
 ##############################
 info "Updating SSH configuration to prevent locale issues"
@@ -102,6 +113,24 @@ else
   info "Tailscale is already installed"
 fi
 
+#############################
+# Docker Setup Prerequisite #
+#############################
+info "Setting up docker prerequisites"
+if ! is_file "/etc/apt/keyrings/docker.asc"; then
+  # Add Docker's official GPG key
+  sudo install -m 0755 -d /etc/apt/keyrings
+  sudo curl -fsSL https://download.docker.com/linux/debian/gpg -o /etc/apt/keyrings/docker.asc
+  sudo chmod a+r /etc/apt/keyrings/docker.asc
+  echo \
+  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/debian \
+  $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
+  sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+  success "Docker prerequirsite completed"
+else
+  info "Docker prerequisites already set"
+fi
+
 ###########################
 # Update the apt packages #
 ###########################
@@ -174,24 +203,16 @@ else
   info "neovim is already installed"
 fi
 
-################
-# Setup docker #
-################
-info "Installing docker"
-if ! command_exists docker; then
-  # Add Docker's official GPG key
-  sudo install -m 0755 -d /etc/apt/keyrings
-  sudo curl -fsSL https://download.docker.com/linux/debian/gpg -o /etc/apt/keyrings/docker.asc
-  sudo chmod a+r /etc/apt/keyrings/docker.asc
-  echo \
-  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/debian \
-  $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
-  sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-  sudo apt-get update
-  sudo usermod -aG docker "${USER}"
-  success "Docker installed successfully"
+####################################
+# Add current user to docker group #
+####################################
+info "Adding current user to docker group"
+if ! groups | grep -q docker; then
+  sudo usermod -aG docker $USER
+  success "User added to docker group"
+  info "Please logout and login again to use docker without sudo"
 else
-  info "Docker is already installed"
+  info "User is already part of docker group"
 fi
 
 #############
